@@ -25,9 +25,8 @@ const userRoutes = require('./routes/users');
 const campgroundsRoutes = require('./routes/campgrounds');
 const reviewsRoutes = require('./routes/reviews');
 const MongoStore = require("connect-mongo");
-const dbUrl = process.env.DB_URL;
+const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/yelp-camp';
 
-// const dbUrl = 'mongodb://127.0.0.1:27017/yelp-camp';
 mongoose.connect(dbUrl, {
     useNewUrlParser: true,
     // useCreateIndex: true,  deprecated
@@ -53,10 +52,11 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     crypto: {
-        secret: 'thisshouldbeabettersecret!'
+        secret: secret
     },
     touchAfter: 24 * 60 * 60
 });
@@ -68,7 +68,7 @@ store.on("error", function (e) {
 const sessionConfig = {
     store, // use the store to store information
     name: 'session', // a way to not make it so clear about the cookie id for hackers to find out which by default is sessionID
-    secret: 'thisshouldbeabettersecret!',
+    secret: secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
